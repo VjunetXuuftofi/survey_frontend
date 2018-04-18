@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Survey</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/muicss/0.9.38/css/mui.min.css"
+          integrity="sha256-1kdjJzG+yIdfXQPfdFjTqSfMtVikJyGaRY5n3r6mPiI="
+          crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/muicss/0.9.38/js/mui.min.js"
+            integrity="sha256-amnW/0g7wNdXtLCXiXthi0sbGxWFYwAGPrx9GS08VWU="
+            crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/7.18.0/sweetalert2.min.css"
+          integrity="sha256-WZCgtWbJvGINRLoL2hU/dgHZtSw2oWveu7HIf5XTCzU=" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/7.18.0/sweetalert2.min.js"
+            integrity="sha256-QZqCqbovXa+i0/TO1dTr1u3JVBEp8lJ6tsajYbpJVdI=" crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="mui-container">
+    <div class="mui-panel mui--text-center">
+        <h2>Survey</h2>
+        <b>Please note:</b> your email will be recorded when you submit this survey. <a href="/about">Read more.</a>
+    </div>
+    <div class="mui-panel">
+        <form class="mui-form">
+            <div id="name-container">
+                Which of the following people have you directly interacted with at some point? *
+            </div>
+            <div class="mui-textfield" style="max-width: 500px">
+                How many minutes (out of 45) are you productive during tutorial? *
+                <input type="number" title="tutorial minutes" id="tutorial" required>
+            </div>
+            <button class="mui-btn mui-btn--raised" id="submit">Submit</button>
+        </form>
+    </div>
+</div>
+</body>
+<script>
+    var id = window.location.search.substr(1).split("id=")[1];
+    var name_container = $("#name-container");
+    $("#submit").click(function (e) {
+        e.preventDefault();
+        var people = [];
+        $(".person").each(function (i, element) {
+            people.push({"name": element.value, "known": element.checked})
+        });
+        $.post({
+            url: "https://mighty-plateau-10240.herokuapp.com/submit",
+            dataType: "json",
+            contentType: "application/json",
+            data: JSON.stringify({"id": id, "people": people, "tutorial": $("#tutorial").val()}),
+            success: function(result) {
+                swal(
+                    'Survey Submitted',
+                    'Thank you! You may now close the page.',
+                    'success'
+                )
+            }
+        }).fail(function (error) {
+            error = error.responseJSON["error"];
+            swal(error["title"], error["message"], "error")
+        });
+    });
+    $.get({
+        url: "https://mighty-plateau-10240.herokuapp.com/get_names",
+        data: {"id": id},
+        success: function(result) {
+            result = result["names"];
+            for (var i = 0; i < result.length; i++) {
+                var this_name = result[i];
+                name_container.append('<div class="mui-checkbox"><label>' +
+                    '<input type="checkbox" class="person" value="' + this_name + '">\n' +
+                    this_name +
+                    '</label></div>')
+            }
+
+        }
+    });
+
+</script>
+</html>
